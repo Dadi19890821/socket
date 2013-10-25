@@ -78,8 +78,6 @@ int main(void)
 
 	closesocket(sockSrv);
 	WSACleanup();
-	
-	
 
 	return 0;
 }
