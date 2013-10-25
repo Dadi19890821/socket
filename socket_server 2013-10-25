@@ -1,0 +1,85 @@
+#include <WinSock2.h>
+#include <iostream>
+#include "stdio.h"
+#pragma  comment(lib,"ws2_32.lib")
+
+using namespace std;
+int main(void)
+{
+	WORD wVersionRequest;
+	WSADATA wsaData;
+	int err;
+	wVersionRequest = MAKEWORD(1,1);
+	err = WSAStartup(wVersionRequest,&wsaData);
+	if (err != 0)
+	{
+		cerr<<"startup 失败!"<<endl;
+		return -1;
+	}
+
+	if (LOBYTE(wsaData.wVersion) != 1 || HIBYTE(wsaData.wVersion) != 1)
+	{
+		WSACleanup();
+		cerr<<"version 不符合!"<<endl;
+		return -1;
+	}
+
+	cout<<"****************************************"<<endl;
+	cout<<"*******************Server****************"<<endl;
+	cout<<"****************************************"<<endl;
+	SOCKET sockSrv = socket(AF_INET,SOCK_STREAM,0);
+	SOCKADDR_IN addrSrv;
+	addrSrv.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+	addrSrv.sin_family = AF_INET;
+	addrSrv.sin_port = htons(6000);
+
+	bind(sockSrv,(SOCKADDR*)&addrSrv,sizeof(SOCKADDR));
+	listen(sockSrv,5);
+
+	SOCKADDR_IN addrClient;
+	int len = sizeof(SOCKADDR);
+    
+	while(1){
+
+		char sendBuf[100];
+		
+
+		SOCKET sockConn = accept(sockSrv,(SOCKADDR*)&addrClient,&len);
+
+
+		//向客户端发送欢迎消息
+		 
+		sprintf(sendBuf,"Welcome %s to Lizhaomin's web!", inet_ntoa(addrClient.sin_addr));
+		send(sockConn,sendBuf,strlen(sendBuf)+1,0);
+	 
+
+		cout<<inet_ntoa(addrClient.sin_addr)<<" has connected to server!"<<endl;
+	 
+		
+		//在服务器端显示连接到服务器的客服端IP地址
+		
+
+		char recvBuf[100];
+		while(cin.getline(sendBuf,100) )
+		{
+			if (strcmp(sendBuf,"") != 0)
+			{
+				send(sockConn,sendBuf,strlen(sendBuf)+1,0);
+			}
+		
+			recv(sockConn,recvBuf,100,0);
+			if(strcmp(recvBuf,"") != 0)
+				cout<<inet_ntoa(addrClient.sin_addr)<<" says: " << recvBuf<<endl;
+	 
+		}
+		closesocket(sockConn);
+		
+	}
+
+	closesocket(sockSrv);
+	WSACleanup();
+	
+	
+
+	return 0;
+}
