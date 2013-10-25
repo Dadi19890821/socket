@@ -1,0 +1,73 @@
+#include <WinSock2.h>
+#include <iostream>
+#pragma  comment(lib,"ws2_32.lib")
+using namespace std;
+int  main(void)
+{
+	WORD wVersionData;
+	WSADATA wsaData;
+	int err;
+	wVersionData = MAKEWORD(1,1);
+	err = WSAStartup(wVersionData,&wsaData);
+	if (err != 0)
+	{
+		WSACleanup();
+		cerr<<"startup failed!"<<endl;
+		return -1;
+	}
+
+	if (LOBYTE(wsaData.wVersion) != 1 || HIBYTE(wsaData.wVersion) != 1)
+	{
+		WSACleanup();
+		cerr<<"version not fit!"<<endl;
+		return -1;
+	}
+
+	
+	SOCKADDR_IN addrSrv;
+
+	addrSrv.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+	addrSrv.sin_family = AF_INET;
+	addrSrv.sin_port = htons(6000);
+	
+	
+
+	char inputData[100];
+	//多次通信
+
+	cout<<"****************************************"<<endl;
+	cout<<"***************Client********************"<<endl;
+	cout<<"****************************************"<<endl;
+
+	SOCKET sockClient = socket(AF_INET,SOCK_STREAM,0);
+	connect(sockClient,(SOCKADDR*)&addrSrv,sizeof(SOCKADDR));
+
+	cout<<"You has connected to server!"<<endl;
+	/*char recvBuf[100];
+	recv(sockClient,recvBuf,100,0);
+	if (strcmp(recvBuf,"") != 0)
+	{
+		cout<<"Messages From Server: "<<recvBuf<<endl;
+	}*/
+ 
+   while(cin.getline(inputData,100)) 
+   {
+	   if (strcmp(inputData,"") != 0)
+	   {
+		   send(sockClient,inputData,strlen(inputData)+1,0);
+	   }
+	   char recvBuf[100];
+	   recv(sockClient,recvBuf,100,0);
+	   if (strcmp(recvBuf,"") != 0)
+	   {
+		   cout<<"Messages From Server: "<<recvBuf<<endl;
+	   }
+
+   }
+
+	closesocket(sockClient);
+	
+	WSACleanup();
+
+	return 0;
+}
